@@ -1,14 +1,14 @@
 from rest_framework import serializers
 
-from .models import Product
+from .models import Dealer, Product
 
 
 class ProductSerializer(serializers.ModelSerializer):
     stock = serializers.SerializerMethodField()
 
     class Meta:
-      model = Product
-      fields = [
+        model = Product
+        fields = [
             "sku",
             "name",
             "category",
@@ -18,10 +18,10 @@ class ProductSerializer(serializers.ModelSerializer):
             "stock",
             "description",
         ]
-      read_only_fields = ["sku", "stock"]
-      extra_kwargs = {
+        read_only_fields = ["sku", "stock"]
+        extra_kwargs = {
             "sku": {"validators": []},
-      }
+        }
 
     def get_stock(self, obj):
         try:
@@ -44,3 +44,22 @@ class ProductCreateSerializer(ProductSerializer):
 
 class ProductUpdateSerializer(ProductSerializer):
     pass
+
+
+class DealerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dealer
+        fields = [
+            "id",
+            "dealer_code",
+            "name",
+            "city",
+            "phone",
+            "email",
+            "gstin",
+            "credit_limit",
+        ]
+        read_only_fields = ["id"]
+        extra_kwargs = {
+            "dealer_code": {"validators": []},
+        }
