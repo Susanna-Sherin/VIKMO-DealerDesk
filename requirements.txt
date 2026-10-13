@@ -5,3 +5,5 @@ dj-database-url>=2.1
 python-dotenv>=1.0
 requests>=2.31
 # Add your LLM provider's SDK if you use one, e.g. google-genai, openai, anthropic or groq
+gunicorn
+whitenoise
