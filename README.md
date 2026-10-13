@@ -2,8 +2,10 @@ VIKMO DealerDesk — Technical Submission
 
 Track: aiml (AI / ML Intern Track)
 Author: Susanna Sherin C (Final-Year B.Tech AI & ML Candidate)
-Submission Repository: VIKMO DealerDesk
-Video Walkthrough: Add your walkthrough video link here (Replace with your actual YouTube, Loom, or Google Drive link before submission.)
+Submission Repository: https://github.com/Susanna-Sherin/VIKMO-DealerDesk
+
+
+Video Walkthrough: https://drive.google.com/file/d/1xOQy34s_TJvTuPNcCkQOZvHqohWVqOMO/view?usp=sharing
 
 1. System Overview & Architecture
 
