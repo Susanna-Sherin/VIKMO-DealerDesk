@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="VIKMO DealerDesk — Real-time B2B operations portal for vehicle parts distribution across South India.">
+  <title>{% block title %}VIKMO DealerDesk — B2B Automotive Distribution Portal{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'core/css/portal.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="app-container" id="appRoot">
+    <!-- Sidebar -->
+    <aside class="app-sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-badge" aria-hidden="true">V</div>
+        <div class="brand-info">
+          <span class="brand-title">VIKMO DealerDesk</span>
+          <span class="brand-subtitle">Bengaluru Central Hub</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebarNav" aria-label="Main Navigation">
+        <a class="nav-item active" data-tab="tab-overview" id="nav-overview">
+          <span class="nav-icon" aria-hidden="true">📊</span>
+          <span>Overview</span>
+        </a>
+        <a class="nav-item" data-tab="tab-catalogue" id="nav-catalogue">
+          <span class="nav-icon" aria-hidden="true">📦</span>
+          <span>Catalogue &amp; Stock</span>
+        </a>
+        <a class="nav-item" data-tab="tab-dealers" id="nav-dealers">
+          <span class="nav-icon" aria-hidden="true">🏢</span>
+          <span>Dealers</span>
+        </a>
+        <a class="nav-item" data-tab="tab-orders" id="nav-orders">
+          <span class="nav-icon" aria-hidden="true">📋</span>
+          <span>Orders &amp; Drafts</span>
+        </a>
+        <a class="nav-item" data-tab="tab-assistant" id="nav-assistant">
+          <span class="nav-icon" aria-hidden="true">🤖</span>
+          <span>AI Assistant</span>
+        </a>
+        <a class="nav-item" data-tab="tab-forecast" id="nav-forecast">
+          <span class="nav-icon" aria-hidden="true">📈</span>
+          <span>Demand Forecast</span>
+          <span class="nav-item-badge" id="reorderBadge" style="display:none;">0</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <span class="status-dot" id="systemHealthDot" title="Checking health..."></span>
+          <span id="systemHealthText">Connecting to API...</span>
+        </div>
+        <div style="margin-top: 4px;">PostgreSQL 5432 &bull; Asia/Kolkata</div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main" id="mainContent">
+      <header class="app-header">
+        <div class="header-left">
+          <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Toggle navigation menu">☰</button>
+          <div class="page-headline">
+            <h1 class="page-title" id="pageHeading">Operations Overview</h1>
+            <p class="page-subtitle" id="pageSubheading">Real-time distributor operations and warehouse indicators</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="live-clock" id="liveClock">--:--:-- IST</div>
+          <button class="btn btn-secondary btn-sm" id="btnRefreshActiveTab" title="Refresh current view">
+            <span>🔄</span> Refresh
+          </button>
+          <button class="btn btn-primary btn-sm" id="btnHeaderNewOrder">
+            <span>+</span> Draft Order
+          </button>
+        </div>
+      </header>
+
+      <div class="view-viewport" id="viewViewport">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Global Modals Container -->
+  {% block modals %}{% endblock %}
+
+  <script src="{% static 'core/js/portal.js' %}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,685 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<!-- =======================================================================
+     TAB 1: OPERATIONS OVERVIEW (DASHBOARD)
+     ======================================================================= -->
+<section class="tab-pane active" id="tab-overview" role="tabpanel" aria-labelledby="nav-overview">
+  <!-- Top KPI Metrics Grid -->
+  <div class="metrics-grid">
+    <div class="metric-card" style="--card-accent: var(--brand-cyan);">
+      <div class="metric-header">
+        <span class="metric-title">Catalogue Products</span>
+        <span class="metric-icon">📦</span>
+      </div>
+      <div class="metric-value tabular-nums" id="statTotalSkus">--</div>
+      <div class="metric-subtext" id="statStockHealth">Tracking active SKUs in warehouse</div>
+    </div>
+
+    <div class="metric-card" style="--card-accent: var(--brand-blue);">
+      <div class="metric-header">
+        <span class="metric-title">Registered Dealers</span>
+        <span class="metric-icon">🏢</span>
+      </div>
+      <div class="metric-value tabular-nums" id="statTotalDealers">--</div>
+      <div class="metric-subtext">Active network across South India</div>
+    </div>
+
+    <div class="metric-card" style="--card-accent: var(--color-purple);">
+      <div class="metric-header">
+        <span class="metric-title">Active Orders</span>
+        <span class="metric-icon">📋</span>
+      </div>
+      <div class="metric-value tabular-nums" id="statTotalOrders">--</div>
+      <div class="metric-subtext" id="statOrderBreakdown">Tracking drafts &amp; confirmed orders</div>
+    </div>
+
+    <div class="metric-card" style="--card-accent: var(--color-warning);">
+      <div class="metric-header">
+        <span class="metric-title">Reorder Alerts</span>
+        <span class="metric-icon">⚠️</span>
+      </div>
+      <div class="metric-value tabular-nums" id="statReorderCount">--</div>
+      <div class="metric-subtext" id="statReorderSubtext">SKUs below forecasted demand</div>
+    </div>
+  </div>
+
+  <!-- Main Overview Split -->
+  <div class="split-grid">
+    <!-- Urgent Reorder Recommendations -->
+    <div class="content-card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>⚠️</span> Urgent Reorder Suggestions
+        </div>
+        <button class="btn btn-outline btn-sm" id="btnViewAllForecast">View All Forecasts &rarr;</button>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table" id="dashboardReorderTable">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Product</th>
+              <th>Stock</th>
+              <th>4-Wk Demand</th>
+              <th>Suggested Qty</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="dashboardReorderBody">
+            <tr>
+              <td colspan="6" class="loading-state">
+                <div class="spinner"></div>
+                <span>Loading reorder analysis...</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent Orders Activity -->
+    <div class="content-card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>📋</span> Recent Orders
+        </div>
+        <button class="btn btn-outline btn-sm" id="btnViewAllOrders">View All Orders &rarr;</button>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table" id="dashboardOrdersTable">
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Dealer</th>
+              <th>Status</th>
+              <th>Grand Total</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="dashboardOrdersBody">
+            <tr>
+              <td colspan="5" class="loading-state">
+                <div class="spinner"></div>
+                <span>Loading recent orders...</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =======================================================================
+     TAB 2: PRODUCT CATALOGUE & INVENTORY
+     ======================================================================= -->
+<section class="tab-pane" id="tab-catalogue" role="tabpanel" aria-labelledby="nav-catalogue">
+  <div class="content-card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>📦</span> Product Catalogue &amp; Warehouse Inventory
+      </div>
+      <span class="metric-subtext" id="catalogueCountSummary">Showing items</span>
+    </div>
+
+    <div class="card-body">
+      <!-- Toolbar Filter Controls -->
+      <div class="toolbar">
+        <div class="filter-group">
+          <div class="input-search-wrapper">
+            <span class="input-search-icon" aria-hidden="true">🔍</span>
+            <input type="text" class="form-control with-icon" id="catalogueSearchInput" placeholder="Search SKU, name, or description..." autocomplete="off">
+          </div>
+
+          <select class="form-control" id="catalogueCategoryFilter" aria-label="Filter by category">
+            <option value="">All Categories</option>
+            <option value="Brakes">Brakes</option>
+            <option value="Filters">Filters</option>
+            <option value="Engine">Engine</option>
+            <option value="Electrical">Electrical</option>
+            <option value="Suspension">Suspension</option>
+            <option value="Transmission">Transmission</option>
+            <option value="Lubricants">Lubricants</option>
+            <option value="Tyres">Tyres</option>
+          </select>
+
+          <input type="text" class="form-control" id="catalogueVehicleFilter" placeholder="Vehicle fitment (e.g. Pulsar)" style="max-width: 180px;">
+
+          <button class="btn btn-secondary btn-sm" id="btnResetCatalogueFilters">Reset</button>
+        </div>
+      </div>
+
+      <!-- Catalogue Table -->
+      <div class="table-responsive">
+        <table class="data-table" id="catalogueTable">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Product Name</th>
+              <th>Category</th>
+              <th>Brand</th>
+              <th>Vehicle Fitment</th>
+              <th>Price (₹)</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="catalogueTableBody">
+            <tr>
+              <td colspan="9" class="loading-state">
+                <div class="spinner"></div>
+                <span>Loading products...</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-bar" id="cataloguePagination">
+        <span id="cataloguePageInfo">Page 1 of 1</span>
+        <div class="pagination-controls">
+          <button class="btn btn-secondary btn-sm" id="btnCataloguePrev" disabled>&larr; Previous</button>
+          <button class="btn btn-secondary btn-sm" id="btnCatalogueNext" disabled>Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =======================================================================
+     TAB 3: DEALERS DIRECTORY
+     ======================================================================= -->
+<section class="tab-pane" id="tab-dealers" role="tabpanel" aria-labelledby="nav-dealers">
+  <div class="content-card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>🏢</span> Authorized Dealer Network
+      </div>
+      <button class="btn btn-primary btn-sm" id="btnOpenAddDealer">
+        <span>+</span> Register New Dealer
+      </button>
+    </div>
+
+    <div class="card-body">
+      <div class="toolbar">
+        <div class="filter-group">
+          <div class="input-search-wrapper">
+            <span class="input-search-icon" aria-hidden="true">🔍</span>
+            <input type="text" class="form-control with-icon" id="dealerSearchInput" placeholder="Filter by dealer code, name, or city..." autocomplete="off">
+          </div>
+        </div>
+        <span class="metric-subtext" id="dealersCountSummary">25 Dealers Registered</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table" id="dealersTable">
+          <thead>
+            <tr>
+              <th>Dealer Code</th>
+              <th>Dealer Name</th>
+              <th>City</th>
+              <th>Credit Limit (₹)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="dealersTableBody">
+            <tr>
+              <td colspan="5" class="loading-state">
+                <div class="spinner"></div>
+                <span>Loading dealers...</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination-bar" id="dealersPagination">
+        <span id="dealersPageInfo">Page 1 of 1</span>
+        <div class="pagination-controls">
+          <button class="btn btn-secondary btn-sm" id="btnDealersPrev" disabled>&larr; Previous</button>
+          <button class="btn btn-secondary btn-sm" id="btnDealersNext" disabled>Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =======================================================================
+     TAB 4: ORDERS & DRAFTS
+     ======================================================================= -->
+<section class="tab-pane" id="tab-orders" role="tabpanel" aria-labelledby="nav-orders">
+  <div class="content-card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>📋</span> Orders &amp; Fulfillment Pipeline
+      </div>
+      <button class="btn btn-primary btn-sm" id="btnOpenCreateOrder">
+        <span>+</span> Create Draft Order
+      </button>
+    </div>
+
+    <div class="card-body">
+      <!-- Toolbar Filters -->
+      <div class="toolbar">
+        <div class="filter-group">
+          <select class="form-control" id="orderStatusFilter" aria-label="Filter by order status">
+            <option value="">All Statuses</option>
+            <option value="DRAFT">DRAFT (Stock Neutral)</option>
+            <option value="CONFIRMED">CONFIRMED (Stock Deducted)</option>
+            <option value="DISPATCHED">DISPATCHED</option>
+            <option value="DELIVERED">DELIVERED</option>
+            <option value="CANCELLED">CANCELLED</option>
+          </select>
+
+          <select class="form-control" id="orderDealerFilter" aria-label="Filter by dealer">
+            <option value="">All Dealers</option>
+          </select>
+
+          <button class="btn btn-secondary btn-sm" id="btnResetOrderFilters">Reset</button>
+        </div>
+        <span class="metric-subtext" id="ordersCountSummary">Showing orders</span>
+      </div>
+
+      <!-- Orders Table -->
+      <div class="table-responsive">
+        <table class="data-table" id="ordersTable">
+          <thead>
+            <tr>
+              <th>Order Number</th>
+              <th>Dealer</th>
+              <th>Status</th>
+              <th>Items</th>
+              <th>Grand Total (₹)</th>
+              <th>Date (IST)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody">
+            <tr>
+              <td colspan="7" class="loading-state">
+                <div class="spinner"></div>
+                <span>Loading orders...</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-bar" id="ordersPagination">
+        <span id="ordersPageInfo">Page 1 of 1</span>
+        <div class="pagination-controls">
+          <button class="btn btn-secondary btn-sm" id="btnOrdersPrev" disabled>&larr; Previous</button>
+          <button class="btn btn-secondary btn-sm" id="btnOrdersNext" disabled>Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =======================================================================
+     TAB 5: AI DEALER ASSISTANT
+     ======================================================================= -->
+<section class="tab-pane" id="tab-assistant" role="tabpanel" aria-labelledby="nav-assistant">
+  <div class="assistant-container">
+    <div class="assistant-header">
+      <div class="assistant-context">
+        <span style="font-size:1.3rem;">🤖</span>
+        <div>
+          <div style="font-weight:700; color:#fff;">DealerDesk Operations Assistant</div>
+          <div style="font-size:0.75rem; color:var(--text-dim);">Natural language order drafting, catalogue lookups, and inventory status</div>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px;">
+        <select class="form-control" id="assistantDealerSelect" style="max-width:220px; font-size:0.8rem;" aria-label="Select Dealer Context">
+          <option value="">No Dealer Context</option>
+        </select>
+        <span class="badge badge-confirmed" id="assistantModelBadge" title="AI Model Status">Model: Ready</span>
+      </div>
+    </div>
+
+    <!-- Chat Messages Stream -->
+    <div class="chat-history" id="chatHistory" aria-live="polite">
+      <!-- Welcome message -->
+      <div class="chat-message assistant">
+        <div class="chat-avatar">V</div>
+        <div>
+          <div class="chat-bubble">
+            Hello! I am your VIKMO DealerDesk Assistant. You can ask me to find part numbers, check warehouse inventory, or prepare draft orders for dealers across South India.
+          </div>
+          <div class="message-meta">
+            <span>System</span> &bull; <span>Ready</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Prompts Bar -->
+    <div class="quick-prompts-bar" id="quickPromptsBar">
+      <button class="prompt-chip" data-prompt="Check stock for BRK-1044">Check stock for BRK-1044</button>
+      <button class="prompt-chip" data-prompt="Find brake pads for Bajaj Pulsar 150">Brake pads for Pulsar 150</button>
+      <button class="prompt-chip" data-prompt="Create an order for BRK-1044, quantity 5">Order BRK-1044 qty 5</button>
+      <button class="prompt-chip" data-prompt="Show parts for KTM Duke 390">Parts for KTM Duke 390</button>
+      <button class="prompt-chip" data-prompt="Show reorder suggestions">Reorder suggestions</button>
+    </div>
+
+    <!-- Input Bar -->
+    <div class="assistant-input-bar">
+      <input type="text" class="form-control" id="assistantInput" placeholder="Type a request (e.g. 'Check stock for BRK-1044' or 'Draft order for FIL-1012, quantity 4')..." autocomplete="off" style="flex:1;">
+      <button class="btn btn-primary" id="btnSendAssistant">
+        <span>Send</span> &rarr;
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- =======================================================================
+     TAB 6: DEMAND FORECAST & REORDER ENGINE
+     ======================================================================= -->
+<section class="tab-pane" id="tab-forecast" role="tabpanel" aria-labelledby="nav-forecast">
+  <div class="content-card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>📈</span> 4-Week Demand Forecast &amp; Automated Reorder Recommendations
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="btn btn-secondary btn-sm" id="btnTriggerSupplierSync">
+          <span>⚡</span> Sync Supplier Stock
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="toolbar">
+        <div class="filter-group">
+          <span style="font-size:0.85rem; color:var(--text-dim);">
+            Predictions generated for <strong>40 high-velocity SKUs</strong> across a <strong>4-week horizon</strong> with lead time safety buffers.
+          </span>
+        </div>
+        <span class="metric-subtext" id="forecastCountSummary">Loading suggestions...</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table" id="forecastTable">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Product Name</th>
+              <th>Current Stock</th>
+              <th>4-Wk Forecast</th>
+              <th>Suggested Reorder</th>
+              <th>Supplier Lead Time</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="forecastTableBody">
+            <tr>
+              <td colspan="7" class="loading-state">
+                <div class="spinner"></div>
+                <span>Calculating reorder suggestions...</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block modals %}
+<!-- =======================================================================
+     MODAL 1: CREATE DRAFT ORDER
+     ======================================================================= -->
+<div class="modal-overlay" id="modalCreateOrder" role="dialog" aria-modal="true" aria-labelledby="modalCreateOrderTitle">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalCreateOrderTitle">Create New Draft Order</h2>
+      <button class="modal-close" id="btnCloseCreateOrder" aria-label="Close modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="createOrderForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="orderFormDealer">Select Dealer *</label>
+          <select class="form-control" id="orderFormDealer" required>
+            <option value="">-- Choose Authorized Dealer --</option>
+          </select>
+          <div class="form-help">Draft order creation is stock-neutral. Warehouse inventory is not deducted until confirmation.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Order Items *</label>
+          <div class="order-items-builder">
+            <table class="builder-table">
+              <thead>
+                <tr>
+                  <th style="width: 45%;">Product (SKU)</th>
+                  <th style="width: 20%;">Unit Price</th>
+                  <th style="width: 20%;">Quantity</th>
+                  <th style="width: 15%;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="orderItemsBuilderBody">
+                <!-- Dynamic Item Rows -->
+              </tbody>
+            </table>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnAddOrderItemRow" style="margin-top:10px;">
+            <span>+</span> Add Another Item
+          </button>
+        </div>
+
+        <!-- Real-time calculation summary -->
+        <div class="order-calculation-summary">
+          <div class="summary-line">
+            <span>Subtotal:</span>
+            <span class="price tabular-nums" id="orderPreviewSubtotal">₹0.00</span>
+          </div>
+          <div class="summary-line">
+            <span>GST (18% rounded per line):</span>
+            <span class="price tabular-nums" id="orderPreviewTax">₹0.00</span>
+          </div>
+          <div class="summary-line grand-total">
+            <span>Grand Total:</span>
+            <span class="price tabular-nums" id="orderPreviewGrand">₹0.00</span>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="btnCancelCreateOrder">Cancel</button>
+      <button type="button" class="btn btn-primary" id="btnSubmitCreateOrder">Create Draft Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- =======================================================================
+     MODAL 2: ORDER DETAILS & LIFECYCLE
+     ======================================================================= -->
+<div class="modal-overlay" id="modalOrderDetail" role="dialog" aria-modal="true" aria-labelledby="modalOrderDetailTitle">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-header">
+      <div>
+        <h2 class="modal-title" id="modalOrderDetailTitle">Order Details</h2>
+        <div style="font-size:0.78rem; color:var(--text-dim);" id="orderDetailSubtitle">--</div>
+      </div>
+      <button class="modal-close" id="btnCloseOrderDetail" aria-label="Close modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- Order Status Banner -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; padding:12px 16px; background:rgba(16,23,42,0.6); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+        <div>
+          <span style="font-size:0.8rem; color:var(--text-dim);">Current Status:</span>
+          <span class="badge" id="orderDetailStatusBadge">DRAFT</span>
+        </div>
+        <div style="font-size:0.8rem; color:var(--text-dim);" id="orderDetailDate">--</div>
+      </div>
+
+      <!-- Line items table -->
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Product Name</th>
+              <th>Qty</th>
+              <th>Unit Price (₹)</th>
+              <th>Line Subtotal</th>
+              <th>GST (18%)</th>
+              <th>Line Total</th>
+            </tr>
+          </thead>
+          <tbody id="orderDetailItemsBody">
+            <!-- Populated via JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totals box -->
+      <div class="order-calculation-summary" style="margin-top:20px;">
+        <div class="summary-line">
+          <span>Subtotal:</span>
+          <span class="price tabular-nums" id="orderDetailSubtotal">₹0.00</span>
+        </div>
+        <div class="summary-line">
+          <span>Tax Total (GST 18%):</span>
+          <span class="price tabular-nums" id="orderDetailTax">₹0.00</span>
+        </div>
+        <div class="summary-line grand-total">
+          <span>Grand Total:</span>
+          <span class="price tabular-nums" id="orderDetailGrand">₹0.00</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" id="orderDetailActionsFooter">
+      <!-- Dynamic lifecycle buttons -->
+    </div>
+  </div>
+</div>
+
+<!-- =======================================================================
+     MODAL 3: INVENTORY UPDATE
+     ======================================================================= -->
+<div class="modal-overlay" id="modalInventoryUpdate" role="dialog" aria-modal="true" aria-labelledby="modalInventoryTitle">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalInventoryTitle">Update Warehouse Stock</h2>
+      <button class="modal-close" id="btnCloseInventoryModal" aria-label="Close modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="inventoryUpdateForm">
+        <div style="margin-bottom:14px;">
+          <div style="font-size:0.85rem; color:var(--text-dim);">Product:</div>
+          <div style="font-weight:700; color:#fff;" id="inventoryModalProductName">--</div>
+          <div style="font-size:0.78rem; font-family:var(--font-mono); color:var(--brand-cyan);" id="inventoryModalSku">--</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="inventoryQuantityInput">Current Physical Quantity in Warehouse *</label>
+          <input type="number" class="form-control" id="inventoryQuantityInput" min="0" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="inventoryReasonInput">Reason for Adjustment</label>
+          <input type="text" class="form-control" id="inventoryReasonInput" placeholder="e.g. Physical inventory reconciliation, stock arrival">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="btnCancelInventoryModal">Cancel</button>
+      <button type="button" class="btn btn-primary" id="btnSubmitInventoryUpdate">Save Stock Count</button>
+    </div>
+  </div>
+</div>
+
+<!-- =======================================================================
+     MODAL 4: ADD DEALER
+     ======================================================================= -->
+<div class="modal-overlay" id="modalAddDealer" role="dialog" aria-modal="true" aria-labelledby="modalAddDealerTitle">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalAddDealerTitle">Register Authorized Dealer</h2>
+      <button class="modal-close" id="btnCloseAddDealer" aria-label="Close modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="addDealerForm">
+        <div class="form-group">
+          <label class="form-label" for="dealerCodeInput">Dealer Code *</label>
+          <input type="text" class="form-control" id="dealerCodeInput" placeholder="e.g. DLR-BLR-026" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="dealerNameInput">Business / Dealership Name *</label>
+          <input type="text" class="form-control" id="dealerNameInput" placeholder="e.g. Karnataka Speed Spares" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="dealerCityInput">City *</label>
+            <input type="text" class="form-control" id="dealerCityInput" placeholder="e.g. Bengaluru" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="dealerCreditInput">Credit Limit (₹) *</label>
+            <input type="number" class="form-control" id="dealerCreditInput" min="0" step="1000" placeholder="100000" required>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="btnCancelAddDealer">Cancel</button>
+      <button type="button" class="btn btn-primary" id="btnSubmitAddDealer">Register Dealer</button>
+    </div>
+  </div>
+</div>
+
+<!-- =======================================================================
+     MODAL 5: WEEKLY FORECAST DRILL-DOWN
+     ======================================================================= -->
+<div class="modal-overlay" id="modalForecastDetail" role="dialog" aria-modal="true" aria-labelledby="modalForecastTitle">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div>
+        <h2 class="modal-title" id="modalForecastTitle">Demand Forecast Analysis</h2>
+        <div style="font-size:0.78rem; color:var(--text-dim);" id="forecastModalSubtitle">--</div>
+      </div>
+      <button class="modal-close" id="btnCloseForecastModal" aria-label="Close modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;">
+        <div style="background:rgba(16,23,42,0.6); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+          <div style="font-size:0.75rem; color:var(--text-dim);">Current Stock</div>
+          <div style="font-size:1.3rem; font-weight:700; color:#fff;" id="forecastModalCurrentStock">--</div>
+        </div>
+        <div style="background:rgba(16,23,42,0.6); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+          <div style="font-size:0.75rem; color:var(--text-dim);">Total 4-Week Projected Demand</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--brand-cyan);" id="forecastModalTotalDemand">--</div>
+        </div>
+      </div>
+
+      <div style="font-size:0.85rem; font-weight:600; color:#fff; margin-bottom:10px;">Weekly Breakdown:</div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Forecast Horizon</th>
+              <th>Projected Demand</th>
+            </tr>
+          </thead>
+          <tbody id="forecastModalWeeksBody">
+            <!-- Weeks list -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="btnCloseForecastBtn">Close</button>
+      <button type="button" class="btn btn-primary" id="btnForecastOrderAction">Create Draft Order for SKU</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
